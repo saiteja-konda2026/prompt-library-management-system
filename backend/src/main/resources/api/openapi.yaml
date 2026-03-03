@@ -23,6 +23,7 @@ paths:
   /api/prompts:
     get:
       tags: [Prompts]
+      operationId: listPrompts
       summary: List prompts with filtering and pagination
       parameters:
         - name: type
@@ -66,6 +67,7 @@ paths:
 
     post:
       tags: [Prompts]
+      operationId: createPrompt
       summary: Create a new prompt
       requestBody:
         required: true
@@ -80,6 +82,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PromptResponse'
+        '400':
+          description: Bad Request – validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict – duplicate prompt name
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/prompts/{id}:
     parameters:
@@ -89,8 +103,10 @@ paths:
         schema:
           type: integer
           format: int64
+          minimum: 1
     get:
       tags: [Prompts]
+      operationId: getPromptById
       summary: Get prompt details
       responses:
         '200':
@@ -99,8 +115,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PromptResponse'
+        '400':
+          description: Bad Request – invalid id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found – prompt does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     put:
       tags: [Prompts]
+      operationId: updatePrompt
       summary: Update prompt (creates new version)
       requestBody:
         required: true
@@ -111,17 +140,43 @@ paths:
       responses:
         '200':
           description: Updated
+        '400':
+          description: Bad Request – validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found – prompt does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict – duplicate prompt name
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     delete:
       tags: [Prompts]
+      operationId: deletePrompt
       summary: Soft-delete prompt (Archive)
       responses:
         '204':
           description: No Content
+        '404':
+          description: Not Found – prompt does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   # --- Versioning ---
   /api/prompts/{id}/versions:
     get:
       tags: [Versioning]
+      operationId: getVersionHistory
       summary: Get version history
       parameters:
         - name: id
@@ -129,6 +184,8 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
+            minimum: 1
       responses:
         '200':
           description: List of versions
@@ -138,10 +195,23 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PromptVersionResponse'
+        '400':
+          description: Bad Request – invalid id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found – prompt does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/prompts/{id}/rollback/{versionId}:
     post:
       tags: [Versioning]
+      operationId: rollbackVersion
       summary: Rollback to a specific version
       parameters:
         - name: id
@@ -149,19 +219,36 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
+            minimum: 1
         - name: versionId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
+            minimum: 1
       responses:
         '200':
           description: Rolled back successfully
+        '400':
+          description: Bad Request – invalid id or versionId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found – prompt or version does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   # --- Operations ---
   /api/prompts/render:
     post:
       tags: [Operations]
+      operationId: renderTemplate
       summary: Render a template string with variables
       requestBody:
         required: true
@@ -176,10 +263,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RenderResponse'
+        '400':
+          description: Bad Request – validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/prompts/{id}/clone:
     post:
       tags: [Operations]
+      operationId: clonePrompt
       summary: Duplicate a prompt
       parameters:
         - name: id
@@ -187,6 +281,8 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
+            minimum: 1
       requestBody:
         content:
           application/json:
@@ -198,11 +294,30 @@ paths:
       responses:
         '201':
           description: Cloned prompt
+        '400':
+          description: Bad Request – invalid id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found – prompt does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict – duplicate prompt name
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   # --- Starters ---
   /api/prompts/starters:
     get:
       tags: [Starters]
+      operationId: getStarters
       summary: Get active starter prompts in order
       responses:
         '200':
@@ -210,6 +325,7 @@ paths:
   /api/prompts/starters/reorder:
     put:
       tags: [Starters]
+      operationId: reorderStarters
       summary: Update display order
       requestBody:
         required: true
