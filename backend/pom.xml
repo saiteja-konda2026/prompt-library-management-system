@@ -84,8 +84,8 @@
                             <inputSpec>${project.basedir}/src/main/resources/api/openapi.yaml</inputSpec>
                             <generatorName>spring</generatorName>
                             <library>spring-boot</library>
-                            <apiPackage>com.aiplatform.api</apiPackage>
-                            <modelPackage>com.aiplatform.dto</modelPackage>
+                            <apiPackage>com.promptlibrary.api</apiPackage>
+                            <modelPackage>com.promptlibrary.dto</modelPackage>
                             <configOptions>
                                 <interfaceOnly>true</interfaceOnly> <useSpringBoot3>true</useSpringBoot3> <useRecordsForModels>true</useRecordsForModels> <generateSupportingFiles>false</generateSupportingFiles>
                                 <unhandledException>true</unhandledException>
