@@ -1,11 +1,13 @@
 package com.promptlibrary.mapper;
 
+import com.promptlibrary.dto.PromptPageResponse;
 import com.promptlibrary.dto.PromptResponse;
 import com.promptlibrary.dto.PromptStatus;
 import com.promptlibrary.dto.PromptType;
 import com.promptlibrary.dto.VariableDefinition;
 import com.promptlibrary.model.Prompt;
 import com.promptlibrary.model.PromptVariable;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
@@ -15,6 +17,17 @@ import java.util.List;
 
 @Component
 public class PromptMapper {
+
+    public PromptPageResponse toPromptPageResponse(Page<Prompt> page) {
+        PromptPageResponse response = new PromptPageResponse();
+        response.setContent(page.getContent().stream()
+                .map(this::toPromptResponse)
+                .toList());
+        response.setTotalElements((int) page.getTotalElements());
+        response.setTotalPages(page.getTotalPages());
+        response.setNumber(page.getNumber());
+        return response;
+    }
 
     public PromptResponse toPromptResponse(Prompt entity) {
         PromptResponse response = new PromptResponse();

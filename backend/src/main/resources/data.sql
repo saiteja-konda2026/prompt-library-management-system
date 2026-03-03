@@ -83,6 +83,23 @@ I can help you with:
 How can I assist you today?',
 'ARCHIVED', 1, 'admin', 'admin', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
+-- 7. Database Schema Designer (USER, ACTIVE)
+INSERT INTO prompts (id, name, description, type, template_body, status, version, created_by, updated_by, display_order, created_at, updated_at)
+VALUES (7, 'Database Schema Designer', 'Helps design and optimize database schemas with best practices for normalization and indexing', 'USER',
+'You are a database architect helping design a schema for {{project_name}}.
+
+Requirements:
+{{requirements}}
+
+Target database: {{database_type}}
+
+Please:
+1. Propose a normalized schema with tables, columns, and relationships
+2. Suggest appropriate indexes for query optimization
+3. Identify potential performance bottlenecks
+{{#constraints}}Additional constraints: {{constraints}}{{/constraints}}',
+'ACTIVE', 1, 'admin', 'admin', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
 -- =============================================
 -- Prompt Tags
 -- =============================================
@@ -114,6 +131,11 @@ INSERT INTO prompt_tags (prompt_id, tag) VALUES (5, 'openapi');
 -- Tags for Customer Support Bot (id=6)
 INSERT INTO prompt_tags (prompt_id, tag) VALUES (6, 'customer-support');
 INSERT INTO prompt_tags (prompt_id, tag) VALUES (6, 'chatbot');
+
+-- Tags for Database Schema Designer (id=7)
+INSERT INTO prompt_tags (prompt_id, tag) VALUES (7, 'database');
+INSERT INTO prompt_tags (prompt_id, tag) VALUES (7, 'query-optimization');
+INSERT INTO prompt_tags (prompt_id, tag) VALUES (7, 'schema-design');
 
 -- =============================================
 -- Prompt Variables
@@ -151,6 +173,12 @@ INSERT INTO prompt_variables (prompt_id, name, description, default_value, requi
 INSERT INTO prompt_variables (prompt_id, name, description, default_value, required) VALUES (5, 'endpoint_description', 'What the endpoint does', NULL, TRUE);
 INSERT INTO prompt_variables (prompt_id, name, description, default_value, required) VALUES (5, 'request_body', 'Request body schema or example', NULL, FALSE);
 INSERT INTO prompt_variables (prompt_id, name, description, default_value, required) VALUES (5, 'style_guide', 'Documentation style guide to follow', 'Google API Design Guide', FALSE);
+
+-- Variables for Database Schema Designer (id=7)
+INSERT INTO prompt_variables (prompt_id, name, description, default_value, required) VALUES (7, 'project_name', 'Name of the project', NULL, TRUE);
+INSERT INTO prompt_variables (prompt_id, name, description, default_value, required) VALUES (7, 'requirements', 'Schema requirements and use cases', NULL, TRUE);
+INSERT INTO prompt_variables (prompt_id, name, description, default_value, required) VALUES (7, 'database_type', 'Target database system', 'PostgreSQL', TRUE);
+INSERT INTO prompt_variables (prompt_id, name, description, default_value, required) VALUES (7, 'constraints', 'Additional design constraints', NULL, FALSE);
 
 -- Variables for Customer Support Bot (id=6)
 INSERT INTO prompt_variables (prompt_id, name, description, default_value, required) VALUES (6, 'bot_name', 'Display name for the support bot', 'SupportBot', TRUE);
