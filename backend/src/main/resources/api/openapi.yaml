@@ -1,14 +1,364 @@
-openapi: 3.0.3
+openapi: 3.0.0
 info:
-  title: Prompt Library API
-  description: REST API for managing AI prompts
-  version: 0.0.1
+  title: Prompt Library Management System
+  description: API for managing, versioning, and rendering AI agent prompt templates.
+  version: 1.0.0
 
 servers:
   - url: http://localhost:8080
     description: Local development server
 
-paths: {}
+tags:
+  - name: Prompts
+    description: Core CRUD and search operations
+  - name: Versioning
+    description: History and rollback management
+  - name: Operations
+    description: Rendering and cloning logic
+  - name: Starters
+    description: Management of starter-type prompts
+
+paths:
+  # --- Core CRUD & Search ---
+  /api/prompts:
+    get:
+      tags: [Prompts]
+      summary: List prompts with filtering and pagination
+      parameters:
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/PromptType'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/PromptStatus'
+        - name: tags
+          in: query
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: search
+          in: query
+          description: Search in name, description, and body
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of prompts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptPageResponse'
+
+    post:
+      tags: [Prompts]
+      summary: Create a new prompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromptCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptResponse'
+
+  /api/prompts/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    get:
+      tags: [Prompts]
+      summary: Get prompt details
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptResponse'
+    put:
+      tags: [Prompts]
+      summary: Update prompt (creates new version)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromptUpdateRequest'
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [Prompts]
+      summary: Soft-delete prompt (Archive)
+      responses:
+        '204':
+          description: No Content
+
+  # --- Versioning ---
+  /api/prompts/{id}/versions:
+    get:
+      tags: [Versioning]
+      summary: Get version history
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PromptVersionResponse'
+
+  /api/prompts/{id}/rollback/{versionId}:
+    post:
+      tags: [Versioning]
+      summary: Rollback to a specific version
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Rolled back successfully
+
+  # --- Operations ---
+  /api/prompts/render:
+    post:
+      tags: [Operations]
+      summary: Render a template string with variables
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenderRequest'
+      responses:
+        '200':
+          description: Rendered string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderResponse'
+
+  /api/prompts/{id}/clone:
+    post:
+      tags: [Operations]
+      summary: Duplicate a prompt
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newName:
+                  type: string
+      responses:
+        '201':
+          description: Cloned prompt
+
+  # --- Starters ---
+  /api/prompts/starters:
+    get:
+      tags: [Starters]
+      summary: Get active starter prompts in order
+      responses:
+        '200':
+          description: List of starter prompts
+  /api/prompts/starters/reorder:
+    put:
+      tags: [Starters]
+      summary: Update display order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+      responses:
+        '200':
+          description: Order updated
 
 components:
-  schemas: {}
+  schemas:
+    PromptType:
+      type: string
+      enum: [SYSTEM, USER, STARTER, FOLLOW_UP]
+
+    PromptStatus:
+      type: string
+      enum: [DRAFT, ACTIVE, ARCHIVED]
+
+    VariableDefinition:
+      type: object
+      required: [name, required]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        defaultValue:
+          type: string
+        required:
+          type: boolean
+
+    PromptCreateRequest:
+      type: object
+      required: [name, type, templateBody]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        type:
+          $ref: '#/components/schemas/PromptType'
+        templateBody:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        variables:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariableDefinition'
+
+    PromptUpdateRequest:
+      $ref: '#/components/schemas/PromptCreateRequest'
+
+    PromptResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          $ref: '#/components/schemas/PromptType'
+        templateBody:
+          type: string
+        status:
+          $ref: '#/components/schemas/PromptStatus'
+        version:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        variables:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariableDefinition'
+        author:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PromptPageResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PromptResponse'
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        number:
+          type: integer
+
+    PromptVersionResponse:
+      type: object
+      properties:
+        version:
+          type: integer
+        templateBody:
+          type: string
+        author:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    RenderRequest:
+      type: object
+      required: [template, values]
+      properties:
+        template:
+          type: string
+        values:
+          type: object
+          additionalProperties:
+            type: string
+
+    RenderResponse:
+      type: object
+      properties:
+        renderedText:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
