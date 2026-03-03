@@ -29,6 +29,12 @@ public class PromptController implements PromptsApi {
     }
 
     @Override
+    public ResponseEntity<PromptResponse> updatePrompt(Long id, PromptCreateRequest body) {
+        PromptResponse response = promptService.updatePrompt(id, body);
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
     public ResponseEntity<PromptResponse> getPromptById(Long id) {
         PromptResponse response = promptService.getPromptById(id);
         return ResponseEntity.ok(response);

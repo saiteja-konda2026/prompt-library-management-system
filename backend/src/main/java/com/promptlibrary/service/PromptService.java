@@ -60,6 +60,26 @@ public class PromptService {
         return promptMapper.toPromptResponse(saved);
     }
 
+    @Transactional
+    public PromptResponse updatePrompt(Long id, PromptCreateRequest request) {
+        Prompt prompt = promptRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Prompt not found with id: " + id));
+
+        if (promptRepository.existsByNameAndIdNot(request.getName(), id)) {
+            throw new DuplicateNameException("Prompt with name '" + request.getName() + "' already exists");
+        }
+
+        // Snapshot current state into version history
+        prompt.getVersions().add(promptMapper.toPromptVersion(prompt));
+
+        // Apply updates from request
+        promptMapper.updatePromptFromRequest(prompt, request);
+        prompt.setVersion(prompt.getVersion() + 1);
+
+        Prompt saved = promptRepository.save(prompt);
+        return promptMapper.toPromptResponse(saved);
+    }
+
     @Transactional(readOnly = true)
     public PromptPageResponse listPrompts(PromptType type, PromptStatus status,
                                           List<String> tags, String search,

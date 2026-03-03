@@ -6,14 +6,17 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class PromptControllerIntegrationTest {
 
     @Autowired
@@ -126,7 +129,7 @@ class PromptControllerIntegrationTest {
                         .param("size", "2")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(8))
+                .andExpect(jsonPath("$.totalElements").value(7))
                 .andExpect(jsonPath("$.content", hasSize(2)))
                 .andExpect(jsonPath("$.totalPages").value(4))
                 .andExpect(jsonPath("$.number").value(0));
@@ -226,5 +229,83 @@ class PromptControllerIntegrationTest {
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
                 .andExpect(jsonPath("$.details").isArray())
                 .andExpect(jsonPath("$.details", hasSize(greaterThanOrEqualTo(3))));
+    }
+
+    // --- Update Prompt Tests ---
+
+    @Test
+    void updatePrompt_success() throws Exception {
+        String requestBody = """
+                {
+                    "name": "SQL Query Assistant Updated",
+                    "type": "SYSTEM",
+                    "templateBody": "You are {{agent_name}}, an updated SQL assistant.",
+                    "description": "Updated description",
+                    "tags": ["sql", "updated"],
+                    "variables": [
+                        {"name": "agent_name", "description": "Name of the agent", "required": true}
+                    ]
+                }
+                """;
+
+        mockMvc.perform(put("/api/prompts/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("SQL Query Assistant Updated"))
+                .andExpect(jsonPath("$.type").value("SYSTEM"))
+                .andExpect(jsonPath("$.version").value(2))
+                .andExpect(jsonPath("$.description").value("Updated description"))
+                .andExpect(jsonPath("$.templateBody").value("You are {{agent_name}}, an updated SQL assistant."))
+                .andExpect(jsonPath("$.tags", hasSize(2)))
+                .andExpect(jsonPath("$.tags", containsInAnyOrder("sql", "updated")))
+                .andExpect(jsonPath("$.variables", hasSize(1)))
+                .andExpect(jsonPath("$.variables[0].name").value("agent_name"));
+    }
+
+    @Test
+    void updatePrompt_notFound_returns404() throws Exception {
+        String requestBody = """
+                {
+                    "name": "Non-existent",
+                    "type": "USER",
+                    "templateBody": "Some body"
+                }
+                """;
+
+        mockMvc.perform(put("/api/prompts/999")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", containsString("not found")))
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
+
+    @Test
+    void updatePrompt_duplicateName_returns409() throws Exception {
+        String requestBody = """
+                {
+                    "name": "Data Analysis Starter",
+                    "type": "SYSTEM",
+                    "templateBody": "Trying to steal another prompt's name"
+                }
+                """;
+
+        mockMvc.perform(put("/api/prompts/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message", containsString("already exists")))
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
+    }
+
+    @Test
+    void updatePrompt_missingRequiredFields_returns400() throws Exception {
+        mockMvc.perform(put("/api/prompts/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
     }
 }
