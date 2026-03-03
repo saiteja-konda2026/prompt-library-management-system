@@ -11,15 +11,26 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import com.promptlibrary.dto.PromptCreateRequest;
+import com.promptlibrary.model.PromptVersion;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class PromptMapper {
+
+    private final ObjectMapper objectMapper;
+
+    public PromptMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public PromptPageResponse toPromptPageResponse(Page<Prompt> page) {
         PromptPageResponse response = new PromptPageResponse();
@@ -87,6 +98,54 @@ public class PromptMapper {
         variable.setDefaultValue(dto.getDefaultValue());
         variable.setRequired(dto.getRequired());
         return variable;
+    }
+
+    public PromptVersion toPromptVersion(Prompt prompt) {
+        PromptVersion version = new PromptVersion();
+        version.setPrompt(prompt);
+        version.setVersion(prompt.getVersion());
+        version.setName(prompt.getName());
+        version.setDescription(prompt.getDescription());
+        version.setType(prompt.getType());
+        version.setTemplateBody(prompt.getTemplateBody());
+        version.setStatus(prompt.getStatus());
+        version.setAuthor(prompt.getUpdatedBy());
+        version.setDisplayOrder(prompt.getDisplayOrder());
+        try {
+            version.setTagsJson(objectMapper.writeValueAsString(prompt.getTags()));
+            List<Map<String, Object>> varList = prompt.getVariables().stream().map(v -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("name", v.getName());
+                map.put("description", v.getDescription());
+                map.put("defaultValue", v.getDefaultValue());
+                map.put("required", v.getRequired());
+                return map;
+            }).toList();
+            version.setVariablesJson(objectMapper.writeValueAsString(varList));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize version data", e);
+        }
+        return version;
+    }
+
+    public void updatePromptFromRequest(Prompt prompt, PromptCreateRequest request) {
+        prompt.setName(request.getName());
+        prompt.setDescription(request.getDescription());
+        prompt.setType(com.promptlibrary.model.PromptType.valueOf(request.getType().getValue()));
+        prompt.setTemplateBody(request.getTemplateBody());
+
+        prompt.getTags().clear();
+        if (request.getTags() != null) {
+            prompt.getTags().addAll(request.getTags());
+        }
+
+        prompt.getVariables().clear();
+        if (request.getVariables() != null) {
+            List<PromptVariable> newVars = request.getVariables().stream()
+                    .map(v -> toPromptVariable(v, prompt))
+                    .toList();
+            prompt.getVariables().addAll(newVars);
+        }
     }
 
     private PromptType toDto(com.promptlibrary.model.PromptType type) {
