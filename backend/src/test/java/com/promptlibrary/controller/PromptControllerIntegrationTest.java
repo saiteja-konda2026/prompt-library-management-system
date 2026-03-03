@@ -9,6 +9,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -125,7 +126,7 @@ class PromptControllerIntegrationTest {
                         .param("size", "2")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(7))
+                .andExpect(jsonPath("$.totalElements").value(8))
                 .andExpect(jsonPath("$.content", hasSize(2)))
                 .andExpect(jsonPath("$.totalPages").value(4))
                 .andExpect(jsonPath("$.number").value(0));
@@ -159,5 +160,71 @@ class PromptControllerIntegrationTest {
                 .andExpect(jsonPath("$.content[0].type").value("SYSTEM"))
                 .andExpect(jsonPath("$.content[0].status").value("ACTIVE"))
                 .andExpect(jsonPath("$.number").value(0));
+    }
+
+    // --- Create Prompt Tests ---
+
+    @Test
+    void createPrompt_success() throws Exception {
+        String requestBody = """
+                {
+                    "name": "Test Prompt",
+                    "type": "USER",
+                    "templateBody": "Hello {{name}}, welcome to {{platform}}.",
+                    "description": "A test prompt",
+                    "tags": ["test", "greeting"],
+                    "variables": [
+                        {"name": "name", "description": "User name", "required": true},
+                        {"name": "platform", "description": "Platform name", "defaultValue": "AI Hub", "required": false}
+                    ]
+                }
+                """;
+
+        mockMvc.perform(post("/api/prompts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.name").value("Test Prompt"))
+                .andExpect(jsonPath("$.type").value("USER"))
+                .andExpect(jsonPath("$.status").value("DRAFT"))
+                .andExpect(jsonPath("$.version").value(1))
+                .andExpect(jsonPath("$.description").value("A test prompt"))
+                .andExpect(jsonPath("$.templateBody").value("Hello {{name}}, welcome to {{platform}}."))
+                .andExpect(jsonPath("$.tags", hasSize(2)))
+                .andExpect(jsonPath("$.tags", containsInAnyOrder("test", "greeting")))
+                .andExpect(jsonPath("$.variables", hasSize(2)))
+                .andExpect(jsonPath("$.variables[*].name", containsInAnyOrder("name", "platform")))
+                .andExpect(jsonPath("$.createdAt").isNotEmpty())
+                .andExpect(jsonPath("$.updatedAt").isNotEmpty());
+    }
+
+    @Test
+    void createPrompt_duplicateName_returns409() throws Exception {
+        String requestBody = """
+                {
+                    "name": "SQL Query Assistant",
+                    "type": "SYSTEM",
+                    "templateBody": "Duplicate prompt body"
+                }
+                """;
+
+        mockMvc.perform(post("/api/prompts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message", containsString("already exists")))
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
+    }
+
+    @Test
+    void createPrompt_missingRequiredFields_returns400() throws Exception {
+        mockMvc.perform(post("/api/prompts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.details").isArray())
+                .andExpect(jsonPath("$.details", hasSize(greaterThanOrEqualTo(3))));
     }
 }

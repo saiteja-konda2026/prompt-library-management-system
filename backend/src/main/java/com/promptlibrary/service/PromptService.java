@@ -1,10 +1,13 @@
 package com.promptlibrary.service;
 
+import com.promptlibrary.dto.PromptCreateRequest;
 import com.promptlibrary.dto.PromptPageResponse;
 import com.promptlibrary.dto.PromptResponse;
 import com.promptlibrary.dto.PromptStatus;
 import com.promptlibrary.dto.PromptType;
+import com.promptlibrary.exception.DuplicateNameException;
 import com.promptlibrary.exception.ResourceNotFoundException;
+import com.promptlibrary.model.PromptVariable;
 import com.promptlibrary.mapper.PromptMapper;
 import com.promptlibrary.model.Prompt;
 import com.promptlibrary.repository.PromptRepository;
@@ -36,6 +39,25 @@ public class PromptService {
         Prompt prompt = promptRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Prompt not found with id: " + id));
         return promptMapper.toPromptResponse(prompt);
+    }
+
+    @Transactional
+    public PromptResponse createPrompt(PromptCreateRequest request) {
+        if (promptRepository.existsByName(request.getName())) {
+            throw new DuplicateNameException("Prompt with name '" + request.getName() + "' already exists");
+        }
+
+        Prompt prompt = promptMapper.toPromptEntity(request);
+
+        if (request.getVariables() != null) {
+            List<PromptVariable> variables = request.getVariables().stream()
+                    .map(v -> promptMapper.toPromptVariable(v, prompt))
+                    .toList();
+            prompt.getVariables().addAll(variables);
+        }
+
+        Prompt saved = promptRepository.save(prompt);
+        return promptMapper.toPromptResponse(saved);
     }
 
     @Transactional(readOnly = true)

@@ -4,8 +4,11 @@ import com.promptlibrary.dto.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -31,6 +34,26 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse()
                 .message("Validation failed: " + ex.getMessage())
                 .code("BAD_REQUEST");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(DuplicateNameException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateName(DuplicateNameException ex) {
+        ErrorResponse error = new ErrorResponse()
+                .message(ex.getMessage())
+                .code("CONFLICT");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        List<String> details = ex.getBindingResult().getFieldErrors().stream()
+                .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+                .toList();
+        ErrorResponse error = new ErrorResponse()
+                .message("Validation failed")
+                .code("BAD_REQUEST")
+                .details(details);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }
