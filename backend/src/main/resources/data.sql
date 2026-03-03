@@ -133,7 +133,7 @@ INSERT INTO prompt_tags (prompt_id, tag) VALUES (6, 'customer-support');
 INSERT INTO prompt_tags (prompt_id, tag) VALUES (6, 'chatbot');
 
 -- Tags for Database Schema Designer (id=7)
-INSERT INTO prompt_tags (prompt_id, tag) VALUES (7, 'database');
+INSERT INTO prompt_tags (prompt_id, tag) VALUES (7, 'database-design');
 INSERT INTO prompt_tags (prompt_id, tag) VALUES (7, 'query-optimization');
 INSERT INTO prompt_tags (prompt_id, tag) VALUES (7, 'schema-design');
 
@@ -186,3 +186,7 @@ INSERT INTO prompt_variables (prompt_id, name, description, default_value, requi
 INSERT INTO prompt_variables (prompt_id, name, description, default_value, required) VALUES (6, 'support_category_1', 'First support category', 'Billing & Payments', FALSE);
 INSERT INTO prompt_variables (prompt_id, name, description, default_value, required) VALUES (6, 'support_category_2', 'Second support category', 'Technical Issues', FALSE);
 INSERT INTO prompt_variables (prompt_id, name, description, default_value, required) VALUES (6, 'support_category_3', 'Third support category', 'Account Management', FALSE);
+
+-- Reset auto-increment sequences to avoid PK conflicts with new inserts
+ALTER TABLE prompts ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE prompt_variables ALTER COLUMN id RESTART WITH 100;

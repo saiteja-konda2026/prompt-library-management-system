@@ -10,9 +10,12 @@ import com.promptlibrary.model.PromptVariable;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
+import com.promptlibrary.dto.PromptCreateRequest;
+
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @Component
@@ -62,6 +65,28 @@ public class PromptMapper {
         dto.setDefaultValue(entity.getDefaultValue());
         dto.setRequired(entity.getRequired());
         return dto;
+    }
+
+    public Prompt toPromptEntity(PromptCreateRequest request) {
+        Prompt prompt = new Prompt();
+        prompt.setName(request.getName());
+        prompt.setDescription(request.getDescription());
+        prompt.setType(com.promptlibrary.model.PromptType.valueOf(request.getType().getValue()));
+        prompt.setTemplateBody(request.getTemplateBody());
+        if (request.getTags() != null) {
+            prompt.setTags(new HashSet<>(request.getTags()));
+        }
+        return prompt;
+    }
+
+    public PromptVariable toPromptVariable(VariableDefinition dto, Prompt prompt) {
+        PromptVariable variable = new PromptVariable();
+        variable.setPrompt(prompt);
+        variable.setName(dto.getName());
+        variable.setDescription(dto.getDescription());
+        variable.setDefaultValue(dto.getDefaultValue());
+        variable.setRequired(dto.getRequired());
+        return variable;
     }
 
     private PromptType toDto(com.promptlibrary.model.PromptType type) {
