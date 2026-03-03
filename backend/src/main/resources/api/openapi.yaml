@@ -169,6 +169,12 @@ paths:
       responses:
         '204':
           description: No Content
+        '400':
+          description: Bad Request – cannot archive a DRAFT prompt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Not Found – prompt does not exist
           content:
