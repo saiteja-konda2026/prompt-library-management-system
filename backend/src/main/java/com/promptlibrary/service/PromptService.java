@@ -80,6 +80,19 @@ public class PromptService {
         return promptMapper.toPromptResponse(saved);
     }
 
+    @Transactional
+    public void deletePrompt(Long id) {
+        Prompt prompt = promptRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Prompt not found with id: " + id));
+
+        if (prompt.getStatus() == com.promptlibrary.model.PromptStatus.DRAFT) {
+            throw new IllegalArgumentException("Cannot archive a prompt with DRAFT status");
+        }
+
+        prompt.setStatus(com.promptlibrary.model.PromptStatus.ARCHIVED);
+        promptRepository.save(prompt);
+    }
+
     @Transactional(readOnly = true)
     public PromptPageResponse listPrompts(PromptType type, PromptStatus status,
                                           List<String> tags, String search,

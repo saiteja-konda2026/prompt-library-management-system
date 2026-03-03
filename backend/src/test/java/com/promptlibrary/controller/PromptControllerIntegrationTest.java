@@ -9,6 +9,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -307,5 +308,35 @@ class PromptControllerIntegrationTest {
                         .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+    }
+
+    // --- Delete Prompt Tests ---
+
+    @Test
+    void deletePrompt_success() throws Exception {
+        // Prompt id=1 is ACTIVE, so it can be archived
+        mockMvc.perform(delete("/api/prompts/1"))
+                .andExpect(status().isNoContent());
+
+        // Verify it was archived
+        mockMvc.perform(get("/api/prompts/1").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ARCHIVED"));
+    }
+
+    @Test
+    void deletePrompt_draftStatus_returns400() throws Exception {
+        // Prompt id=4 (Email Draft Helper) is DRAFT
+        mockMvc.perform(delete("/api/prompts/4"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", containsString("DRAFT")))
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+    }
+
+    @Test
+    void deletePrompt_notFound_returns404() throws Exception {
+        mockMvc.perform(delete("/api/prompts/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
     }
 }

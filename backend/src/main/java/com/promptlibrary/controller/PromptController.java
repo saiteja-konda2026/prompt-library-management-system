@@ -35,6 +35,12 @@ public class PromptController implements PromptsApi {
     }
 
     @Override
+    public ResponseEntity<Void> deletePrompt(Long id) {
+        promptService.deletePrompt(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
     public ResponseEntity<PromptResponse> getPromptById(Long id) {
         PromptResponse response = promptService.getPromptById(id);
         return ResponseEntity.ok(response);
