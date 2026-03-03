@@ -75,8 +75,7 @@
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>7.12.0</version>
-                <executions>
+                <version>7.2.0</version> <executions>
                     <execution>
                         <goals>
                             <goal>generate</goal>
@@ -84,13 +83,13 @@
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/api/openapi.yaml</inputSpec>
                             <generatorName>spring</generatorName>
-                            <apiPackage>com.promptlibrary.api</apiPackage>
-                            <modelPackage>com.promptlibrary.dto</modelPackage>
+                            <library>spring-boot</library>
+                            <apiPackage>com.aiplatform.api</apiPackage>
+                            <modelPackage>com.aiplatform.dto</modelPackage>
                             <configOptions>
-                                <interfaceOnly>true</interfaceOnly>
-                                <useSpringBoot3>true</useSpringBoot3>
+                                <interfaceOnly>true</interfaceOnly> <useSpringBoot3>true</useSpringBoot3> <useRecordsForModels>true</useRecordsForModels> <generateSupportingFiles>false</generateSupportingFiles>
+                                <unhandledException>true</unhandledException>
                                 <useTags>true</useTags>
-                                <openApiNullable>false</openApiNullable>
                             </configOptions>
                         </configuration>
                     </execution>
