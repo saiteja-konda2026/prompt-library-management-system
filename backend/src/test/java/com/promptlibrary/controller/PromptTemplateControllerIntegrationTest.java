@@ -77,8 +77,8 @@ class PromptTemplateControllerIntegrationTest {
     void listPrompts_returnsAllPrompts() throws Exception {
         mockMvc.perform(get("/api/prompts").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(7))
-                .andExpect(jsonPath("$.content", hasSize(7)));
+                .andExpect(jsonPath("$.totalElements").value(15))
+                .andExpect(jsonPath("$.content", hasSize(15)));
     }
 
     @Test
@@ -87,8 +87,8 @@ class PromptTemplateControllerIntegrationTest {
                         .param("type", "SYSTEM")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(2))
-                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.totalElements").value(5))
+                .andExpect(jsonPath("$.content", hasSize(5)))
                 .andExpect(jsonPath("$.content[*].type", everyItem(is("SYSTEM"))));
     }
 
@@ -98,8 +98,8 @@ class PromptTemplateControllerIntegrationTest {
                         .param("status", "ACTIVE")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(4))
-                .andExpect(jsonPath("$.content", hasSize(4)))
+                .andExpect(jsonPath("$.totalElements").value(10))
+                .andExpect(jsonPath("$.content", hasSize(10)))
                 .andExpect(jsonPath("$.content[*].status", everyItem(is("ACTIVE"))));
     }
 
@@ -130,9 +130,9 @@ class PromptTemplateControllerIntegrationTest {
                         .param("size", "2")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(7))
+                .andExpect(jsonPath("$.totalElements").value(15))
                 .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.totalPages").value(4))
+                .andExpect(jsonPath("$.totalPages").value(8))
                 .andExpect(jsonPath("$.number").value(0));
     }
 
@@ -143,8 +143,10 @@ class PromptTemplateControllerIntegrationTest {
                         .param("status", "ACTIVE")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.content[0].name").value("SQL Query Assistant"));
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.content[*].type", everyItem(is("SYSTEM"))))
+                .andExpect(jsonPath("$.content[*].status", everyItem(is("ACTIVE"))));
     }
 
     @Test
