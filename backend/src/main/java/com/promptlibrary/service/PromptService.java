@@ -1,6 +1,6 @@
 package com.promptlibrary.service;
 
-import com.promptlibrary.dto.PromptCreateRequest;
+import com.promptlibrary.dto.PromptUpsertRequest;
 import com.promptlibrary.dto.PromptPageResponse;
 import com.promptlibrary.dto.PromptResponse;
 import com.promptlibrary.dto.PromptStatus;
@@ -42,7 +42,7 @@ public class PromptService {
     }
 
     @Transactional
-    public PromptResponse createPrompt(PromptCreateRequest request) {
+    public PromptResponse createPrompt(PromptUpsertRequest request) {
         if (promptRepository.existsByName(request.getName())) {
             throw new DuplicateNameException("Prompt with name '" + request.getName() + "' already exists");
         }
@@ -61,7 +61,7 @@ public class PromptService {
     }
 
     @Transactional
-    public PromptResponse updatePrompt(Long id, PromptCreateRequest request) {
+    public PromptResponse updatePrompt(Long id, PromptUpsertRequest request) {
         Prompt prompt = promptRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Prompt not found with id: " + id));
 
@@ -69,12 +69,22 @@ public class PromptService {
             throw new DuplicateNameException("Prompt with name '" + request.getName() + "' already exists");
         }
 
-        // Snapshot current state into version history
-        prompt.getVersions().add(promptMapper.toPromptVersion(prompt));
+        // Validate status transition: only DRAFT → ACTIVE is allowed
+        if (request.getStatus() != null) {
+            var requestedStatus = com.promptlibrary.model.PromptStatus.valueOf(request.getStatus().getValue());
+            if (prompt.getStatus() != com.promptlibrary.model.PromptStatus.DRAFT || requestedStatus != com.promptlibrary.model.PromptStatus.ACTIVE) {
+                throw new IllegalArgumentException("Invalid status transition: " + prompt.getStatus() + " → " + requestedStatus);
+            }
+        }
+
+        // Only create version snapshot if prompt is not in DRAFT status
+        if (prompt.getStatus() != com.promptlibrary.model.PromptStatus.DRAFT) {
+            prompt.getVersions().add(promptMapper.toPromptVersion(prompt));
+            prompt.setVersion(prompt.getVersion() + 1);
+        }
 
         // Apply updates from request
         promptMapper.updatePromptFromRequest(prompt, request);
-        prompt.setVersion(prompt.getVersion() + 1);
 
         Prompt saved = promptRepository.save(prompt);
         return promptMapper.toPromptResponse(saved);

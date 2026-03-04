@@ -1,7 +1,7 @@
 package com.promptlibrary.controller;
 
 import com.promptlibrary.api.PromptsApi;
-import com.promptlibrary.dto.PromptCreateRequest;
+import com.promptlibrary.dto.PromptUpsertRequest;
 import com.promptlibrary.dto.PromptPageResponse;
 import com.promptlibrary.dto.PromptResponse;
 import com.promptlibrary.dto.PromptStatus;
@@ -23,13 +23,13 @@ public class PromptController implements PromptsApi {
     }
 
     @Override
-    public ResponseEntity<PromptResponse> createPrompt(PromptCreateRequest promptCreateRequest) {
+    public ResponseEntity<PromptResponse> createPrompt(PromptUpsertRequest promptCreateRequest) {
         PromptResponse response = promptService.createPrompt(promptCreateRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Override
-    public ResponseEntity<PromptResponse> updatePrompt(Long id, PromptCreateRequest body) {
+    public ResponseEntity<PromptResponse> updatePrompt(Long id, PromptUpsertRequest body) {
         PromptResponse response = promptService.updatePrompt(id, body);
         return ResponseEntity.ok(response);
     }

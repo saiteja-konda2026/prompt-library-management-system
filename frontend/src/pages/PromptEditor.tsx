@@ -49,7 +49,7 @@ export default function PromptEditor() {
     loadPrompt();
   }, [id, isEditMode]);
 
-  const handleSave = async () => {
+  const handleSave = async (status?: 'ACTIVE') => {
     setSaving(true);
     setError(null);
 
@@ -63,6 +63,7 @@ export default function PromptEditor() {
       type,
       templateBody,
       description: description || undefined,
+      status: status || undefined,
       tags: tagList.length > 0 ? tagList : undefined,
       variables: variables.length > 0 ? variables : undefined,
     };
@@ -129,7 +130,7 @@ export default function PromptEditor() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          {isEditMode && (
+          {isEditMode && prompt?.status === 'ACTIVE' && (
             <button
               onClick={handleDelete}
               className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
@@ -137,8 +138,17 @@ export default function PromptEditor() {
               Archive
             </button>
           )}
+          {isEditMode && prompt?.status === 'DRAFT' && (
+            <button
+              onClick={() => handleSave()}
+              disabled={saving || !name || !templateBody}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {saving ? 'Saving...' : 'Save as Draft'}
+            </button>
+          )}
           <button
-            onClick={handleSave}
+            onClick={() => handleSave(isEditMode && prompt?.status === 'DRAFT' ? 'ACTIVE' : undefined)}
             disabled={saving || !name || !templateBody}
             className="rounded-lg bg-gradient-to-r from-indigo-600 to-blue-500 px-5 py-2 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
