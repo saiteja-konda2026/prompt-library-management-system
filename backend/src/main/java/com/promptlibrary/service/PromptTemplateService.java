@@ -24,12 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class PromptService {
+public class PromptTemplateService {
 
     private final PromptRepository promptRepository;
     private final PromptMapper promptMapper;
 
-    public PromptService(PromptRepository promptRepository, PromptMapper promptMapper) {
+    public PromptTemplateService(PromptRepository promptRepository, PromptMapper promptMapper) {
         this.promptRepository = promptRepository;
         this.promptMapper = promptMapper;
     }

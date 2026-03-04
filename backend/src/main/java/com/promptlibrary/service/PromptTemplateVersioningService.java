@@ -13,15 +13,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-public class VersioningService {
+public class PromptTemplateVersioningService {
 
     private final PromptRepository promptRepository;
     private final PromptVersionRepository promptVersionRepository;
     private final PromptMapper promptMapper;
 
-    public VersioningService(PromptRepository promptRepository,
-                             PromptVersionRepository promptVersionRepository,
-                             PromptMapper promptMapper) {
+    public PromptTemplateVersioningService(PromptRepository promptRepository,
+                                           PromptVersionRepository promptVersionRepository,
+                                           PromptMapper promptMapper) {
         this.promptRepository = promptRepository;
         this.promptVersionRepository = promptVersionRepository;
         this.promptMapper = promptMapper;
