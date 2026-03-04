@@ -5,6 +5,7 @@ import com.promptlibrary.dto.PromptPageResponse;
 import com.promptlibrary.dto.PromptResponse;
 import com.promptlibrary.dto.PromptStatus;
 import com.promptlibrary.dto.PromptType;
+import com.promptlibrary.dto.VariableDefinition;
 import com.promptlibrary.exception.DuplicateNameException;
 import com.promptlibrary.exception.ResourceNotFoundException;
 import com.promptlibrary.model.PromptVariable;
@@ -105,6 +106,13 @@ public class PromptService {
 
         prompt.setStatus(com.promptlibrary.model.PromptStatus.ARCHIVED);
         promptRepository.save(prompt);
+    }
+
+    @Transactional(readOnly = true)
+    public List<VariableDefinition> getVariablesByPromptId(Long id) {
+        Prompt prompt = promptRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Prompt not found with id: " + id));
+        return promptMapper.toVariableDefinitions(prompt.getVariables());
     }
 
     @Transactional(readOnly = true)

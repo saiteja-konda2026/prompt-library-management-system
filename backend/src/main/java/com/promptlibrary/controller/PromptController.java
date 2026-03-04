@@ -6,6 +6,7 @@ import com.promptlibrary.dto.PromptPageResponse;
 import com.promptlibrary.dto.PromptResponse;
 import com.promptlibrary.dto.PromptStatus;
 import com.promptlibrary.dto.PromptType;
+import com.promptlibrary.dto.VariableDefinition;
 import com.promptlibrary.service.PromptService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +45,12 @@ public class PromptController implements PromptsApi {
     public ResponseEntity<PromptResponse> getPromptById(Long id) {
         PromptResponse response = promptService.getPromptById(id);
         return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public ResponseEntity<List<VariableDefinition>> getPromptVariables(Long id) {
+        List<VariableDefinition> variables = promptService.getVariablesByPromptId(id);
+        return ResponseEntity.ok(variables);
     }
 
     @Override

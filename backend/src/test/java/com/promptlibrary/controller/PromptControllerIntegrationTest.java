@@ -423,4 +423,49 @@ class PromptControllerIntegrationTest {
                 .andExpect(jsonPath("$.message", containsString("Invalid status transition")))
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
     }
+
+    // --- Get Prompt Variables Tests ---
+
+    @Test
+    void getPromptVariables_returnsVariables() throws Exception {
+        // Prompt id=1 (SQL Query Assistant) has 4 variables
+        mockMvc.perform(get("/api/prompts/1/variables").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(4)))
+                .andExpect(jsonPath("$[*].name",
+                        containsInAnyOrder("agent_name", "database_type", "context", "sql_style")))
+                .andExpect(jsonPath("$[0].name").isNotEmpty())
+                .andExpect(jsonPath("$[0].required").isNotEmpty());
+    }
+
+    @Test
+    void getPromptVariables_noVariables_returnsEmptyList() throws Exception {
+        // Create a prompt with no variables
+        String body = """
+                {
+                    "name": "No Variables Prompt",
+                    "type": "USER",
+                    "templateBody": "Just plain text"
+                }
+                """;
+        String response = mockMvc.perform(post("/api/prompts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        // Extract id from response
+        int id = com.jayway.jsonpath.JsonPath.read(response, "$.id");
+
+        mockMvc.perform(get("/api/prompts/" + id + "/variables").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void getPromptVariables_notFound_returns404() throws Exception {
+        mockMvc.perform(get("/api/prompts/999/variables").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
 }
