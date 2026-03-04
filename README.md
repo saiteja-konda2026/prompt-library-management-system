@@ -25,6 +25,7 @@ A full-stack application for managing, versioning, and rendering AI agent prompt
 
 ```bash
 cd backend
+mvn clean install
 mvn spring-boot:run
 ```
 
@@ -38,7 +39,7 @@ npm install
 npm run dev
 ```
 
-The UI starts on `http://localhost:5173`.
+The UI starts on `http://localhost:3000`.
 
 ### Running Tests
 
