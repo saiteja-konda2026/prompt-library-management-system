@@ -8,7 +8,7 @@ import Pagination from '../components/Pagination';
 
 const PROMPT_TYPES: PromptType[] = ['SYSTEM', 'USER', 'STARTER', 'FOLLOW_UP'];
 const PROMPT_STATUSES: PromptStatus[] = ['DRAFT', 'ACTIVE', 'ARCHIVED'];
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', {

@@ -28,7 +28,6 @@ export default function VersionHistory({ promptId, currentVersion, currentTempla
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [rolling, setRolling] = useState(false);
-  const [open, setOpen] = useState(false);
   const [diffSelection, setDiffSelection] = useState<number[]>([]);
   const [showDiffModal, setShowDiffModal] = useState(false);
 
@@ -73,26 +72,17 @@ export default function VersionHistory({ promptId, currentVersion, currentTempla
 
   return (
     <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-5 py-3 bg-gradient-to-r from-violet-50 to-purple-50 border-b border-gray-200 text-left hover:from-violet-100/50 hover:to-purple-100/50 transition-colors"
-      >
-        <span className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-          <svg className="h-4 w-4 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Version History
-          <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">
-            {versions.length}
-          </span>
-        </span>
-        <svg className={`h-4 w-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+      <div className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-violet-50 to-purple-50 border-b border-gray-200">
+        <svg className="h-4 w-4 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-      </button>
+        <span className="text-sm font-semibold text-gray-900">Version History</span>
+        <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">
+          {versions.length}
+        </span>
+      </div>
 
-      {open && (
-        <div className="border-t border-gray-200">
+      <div className="max-h-72 overflow-y-auto">
           {loading ? (
             <div className="px-6 py-4 text-sm text-gray-500">Loading...</div>
           ) : error ? (
@@ -211,7 +201,6 @@ export default function VersionHistory({ promptId, currentVersion, currentTempla
             </div>
           )}
         </div>
-      )}
 
       {/* Diff Modal */}
       {showDiffModal && sortedDiff && (

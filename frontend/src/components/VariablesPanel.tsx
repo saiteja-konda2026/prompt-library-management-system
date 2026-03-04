@@ -49,7 +49,7 @@ export default function VariablesPanel({ templateBody, variables, onChange, test
           {detectedNames.length}
         </span>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-auto max-h-72">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
