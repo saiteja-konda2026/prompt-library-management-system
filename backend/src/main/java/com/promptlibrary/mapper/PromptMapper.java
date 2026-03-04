@@ -4,6 +4,7 @@ import com.promptlibrary.dto.PromptPageResponse;
 import com.promptlibrary.dto.PromptResponse;
 import com.promptlibrary.dto.PromptStatus;
 import com.promptlibrary.dto.PromptType;
+import com.promptlibrary.dto.PromptVersionResponse;
 import com.promptlibrary.dto.VariableDefinition;
 import com.promptlibrary.model.Prompt;
 import com.promptlibrary.model.PromptVariable;
@@ -98,6 +99,33 @@ public class PromptMapper {
         variable.setDefaultValue(dto.getDefaultValue());
         variable.setRequired(dto.getRequired());
         return variable;
+    }
+
+    public PromptVersionResponse toPromptVersionResponse(PromptVersion entity) {
+        PromptVersionResponse response = new PromptVersionResponse();
+        response.setVersion(entity.getVersion());
+        response.setName(entity.getName());
+        response.setDescription(entity.getDescription());
+        response.setType(toDto(entity.getType()));
+        response.setTemplateBody(entity.getTemplateBody());
+        response.setStatus(toDto(entity.getStatus()));
+        response.setAuthor(entity.getAuthor());
+        response.setCreatedAt(toOffsetDateTime(entity.getCreatedAt()));
+        try {
+            if (entity.getTagsJson() != null) {
+                List<String> tags = objectMapper.readValue(entity.getTagsJson(),
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
+                response.setTags(tags);
+            }
+            if (entity.getVariablesJson() != null) {
+                List<VariableDefinition> variables = objectMapper.readValue(entity.getVariablesJson(),
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, VariableDefinition.class));
+                response.setVariables(variables);
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to deserialize version data", e);
+        }
+        return response;
     }
 
     public PromptVersion toPromptVersion(Prompt prompt) {
