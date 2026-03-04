@@ -21,7 +21,12 @@ A full-stack application for managing, versioning, and rendering AI agent prompt
 
 ## Setup & Run Instructions
 
-### Backend
+```bash
+git clone https://github.com/saiteja-konda2026/prompt-library-management-system.git
+cd prompt-library-management-system
+```
+
+### Backend (Terminal 1)
 
 ```bash
 cd backend
@@ -31,7 +36,7 @@ mvn spring-boot:run
 
 The API starts on `http://localhost:8080`.
 
-### Frontend
+### Frontend (Terminal 2)
 
 ```bash
 cd frontend
