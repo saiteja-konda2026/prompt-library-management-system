@@ -428,10 +428,12 @@ export default function PromptEditor() {
       />
       <ConfirmDialog
         open={confirmAction === 'save'}
-        title={isEditMode && prompt?.status === 'DRAFT' ? 'Publish Prompt' : 'Save Changes'}
+        title={isEditMode && prompt?.status === 'DRAFT' ? 'Publish Prompt' : isEditMode ? 'Save Changes' : 'Create Prompt'}
         message={isEditMode && prompt?.status === 'DRAFT'
           ? 'This will mark the prompt as active and make it available for use. This action cannot be undone.'
-          : 'Are you sure you want to save the changes? A new version will be created.'}
+          : isEditMode
+            ? 'Are you sure you want to save the changes? A new version will be created.'
+            : 'A new prompt will be created. You can edit or publish it later.'}
         confirmLabel="Save"
         onConfirm={handleConfirm}
         onCancel={() => setConfirmAction(null)}
