@@ -4,6 +4,7 @@ import type { Prompt, PromptType, VariableDefinition } from '../types/prompt';
 import { fetchPromptById, createPrompt, updatePrompt, deletePrompt } from '../api/prompts';
 import StatusBadge from '../components/StatusBadge';
 import VariablesPanel from '../components/VariablesPanel';
+import VersionHistory from '../components/VersionHistory';
 
 const PROMPT_TYPES: PromptType[] = ['SYSTEM', 'USER', 'STARTER', 'FOLLOW_UP'];
 
@@ -25,10 +26,7 @@ export default function PromptEditor() {
   const [tags, setTags] = useState('');
   const [variables, setVariables] = useState<VariableDefinition[]>([]);
 
-  // Load prompt in edit mode
-  useEffect(() => {
-    if (!isEditMode) return;
-
+  const loadPrompt = () => {
     fetchPromptById(Number(id))
       .then((data) => {
         setPrompt(data);
@@ -41,6 +39,12 @@ export default function PromptEditor() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+  };
+
+  // Load prompt in edit mode
+  useEffect(() => {
+    if (!isEditMode) return;
+    loadPrompt();
   }, [id, isEditMode]);
 
   const handleSave = async () => {
@@ -215,6 +219,16 @@ export default function PromptEditor() {
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
+
+          {/* Version History (edit mode only) */}
+          {prompt && (
+            <VersionHistory
+              promptId={Number(id)}
+              currentVersion={prompt.version}
+              currentTemplateBody={templateBody}
+              onRollback={loadPrompt}
+            />
+          )}
         </div>
       </div>
     </div>

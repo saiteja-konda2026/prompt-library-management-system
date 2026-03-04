@@ -1,4 +1,4 @@
-import type { Prompt, PromptPage, PromptType, PromptStatus, VariableDefinition } from '../types/prompt';
+import type { Prompt, PromptPage, PromptType, PromptStatus, PromptVersion, VariableDefinition } from '../types/prompt';
 
 export interface FetchPromptsParams {
   type?: PromptType;
@@ -77,5 +77,21 @@ export async function deletePrompt(id: number): Promise<void> {
   if (!response.ok) {
     const error = await response.json().catch(() => null);
     throw new Error(error?.message || `Failed to delete prompt: ${response.status}`);
+  }
+}
+
+export async function fetchVersionHistory(id: number): Promise<PromptVersion[]> {
+  const response = await fetch(`/api/prompts/${id}/versions`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch version history: ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function rollbackToVersion(id: number, versionId: number): Promise<void> {
+  const response = await fetch(`/api/prompts/${id}/rollback/${versionId}`, { method: 'POST' });
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(error?.message || `Failed to rollback: ${response.status}`);
   }
 }

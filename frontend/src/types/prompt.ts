@@ -24,6 +24,19 @@ export interface Prompt {
   updatedAt: string;
 }
 
+export interface PromptVersion {
+  version: number;
+  name: string;
+  description?: string;
+  type: PromptType;
+  templateBody: string;
+  status: PromptStatus;
+  tags: string[];
+  variables: VariableDefinition[];
+  author: string;
+  createdAt: string;
+}
+
 export interface PromptPage {
   content: Prompt[];
   totalElements: number;
