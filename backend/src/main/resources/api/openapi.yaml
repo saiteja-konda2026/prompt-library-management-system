@@ -396,6 +396,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/VariableDefinition'
+        author:
+          type: string
 
     PromptUpdateRequest:
       $ref: '#/components/schemas/PromptUpsertRequest'

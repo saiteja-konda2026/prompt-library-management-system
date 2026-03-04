@@ -88,6 +88,10 @@ public class PromptMapper {
         if (request.getTags() != null) {
             prompt.setTags(new HashSet<>(request.getTags()));
         }
+        if (request.getAuthor() != null) {
+            prompt.setCreatedBy(request.getAuthor());
+            prompt.setUpdatedBy(request.getAuthor());
+        }
         return prompt;
     }
 
