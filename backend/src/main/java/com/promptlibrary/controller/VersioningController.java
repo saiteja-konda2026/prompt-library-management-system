@@ -22,4 +22,10 @@ public class VersioningController implements VersioningApi {
         List<PromptVersionResponse> versions = versioningService.getVersionHistory(id);
         return ResponseEntity.ok(versions);
     }
+
+    @Override
+    public ResponseEntity<Void> rollbackVersion(Long id, Long versionId) {
+        versioningService.rollbackToVersion(id, versionId);
+        return ResponseEntity.ok().build();
+    }
 }

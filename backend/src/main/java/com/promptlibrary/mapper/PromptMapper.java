@@ -156,6 +156,39 @@ public class PromptMapper {
         return version;
     }
 
+    public void restorePromptFromVersion(Prompt prompt, PromptVersion version) {
+        prompt.setName(version.getName());
+        prompt.setDescription(version.getDescription());
+        prompt.setType(version.getType());
+        prompt.setTemplateBody(version.getTemplateBody());
+        prompt.setStatus(version.getStatus());
+
+        prompt.getTags().clear();
+        try {
+            if (version.getTagsJson() != null) {
+                List<String> tags = objectMapper.readValue(version.getTagsJson(),
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
+                prompt.getTags().addAll(tags);
+            }
+            prompt.getVariables().clear();
+            if (version.getVariablesJson() != null) {
+                List<Map<String, Object>> varList = objectMapper.readValue(version.getVariablesJson(),
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class));
+                for (Map<String, Object> map : varList) {
+                    PromptVariable variable = new PromptVariable();
+                    variable.setPrompt(prompt);
+                    variable.setName((String) map.get("name"));
+                    variable.setDescription((String) map.get("description"));
+                    variable.setDefaultValue((String) map.get("defaultValue"));
+                    variable.setRequired((Boolean) map.get("required"));
+                    prompt.getVariables().add(variable);
+                }
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to deserialize version data", e);
+        }
+    }
+
     public void updatePromptFromRequest(Prompt prompt, PromptCreateRequest request) {
         prompt.setName(request.getName());
         prompt.setDescription(request.getDescription());
