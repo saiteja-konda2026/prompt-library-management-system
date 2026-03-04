@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import type { Prompt, PromptType } from '../types/prompt';
+import type { Prompt, PromptType, VariableDefinition } from '../types/prompt';
 import { fetchPromptById, createPrompt, updatePrompt, deletePrompt } from '../api/prompts';
 import StatusBadge from '../components/StatusBadge';
+import VariablesPanel from '../components/VariablesPanel';
 
 const PROMPT_TYPES: PromptType[] = ['SYSTEM', 'USER', 'STARTER', 'FOLLOW_UP'];
 
@@ -22,6 +23,7 @@ export default function PromptEditor() {
   const [type, setType] = useState<PromptType>('USER');
   const [templateBody, setTemplateBody] = useState('');
   const [tags, setTags] = useState('');
+  const [variables, setVariables] = useState<VariableDefinition[]>([]);
 
   // Load prompt in edit mode
   useEffect(() => {
@@ -35,6 +37,7 @@ export default function PromptEditor() {
         setType(data.type);
         setTemplateBody(data.templateBody);
         setTags(data.tags.join(', '));
+        setVariables(data.variables);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -55,6 +58,7 @@ export default function PromptEditor() {
       templateBody,
       description: description || undefined,
       tags: tagList.length > 0 ? tagList : undefined,
+      variables: variables.length > 0 ? variables : undefined,
     };
 
     try {
@@ -62,8 +66,8 @@ export default function PromptEditor() {
         const updated = await updatePrompt(Number(id), requestData);
         setPrompt(updated);
       } else {
-        const created = await createPrompt(requestData);
-        navigate(`/prompts/${created.id}`, { replace: true });
+        await createPrompt(requestData);
+        navigate('/', { replace: true });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -177,6 +181,13 @@ export default function PromptEditor() {
               className="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
+
+          {/* Auto-detected Variables */}
+          <VariablesPanel
+            templateBody={templateBody}
+            variables={variables}
+            onChange={setVariables}
+          />
         </div>
 
         {/* Right column - metadata */}
