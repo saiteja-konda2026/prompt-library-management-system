@@ -72,15 +72,23 @@ export default function VersionHistory({ promptId, currentVersion, currentTempla
     : null;
 
   return (
-    <div className="border border-gray-200 rounded-lg bg-white shadow">
+    <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-6 py-4 text-left"
+        className="w-full flex items-center justify-between px-5 py-3 bg-gradient-to-r from-violet-50 to-purple-50 border-b border-gray-200 text-left hover:from-violet-100/50 hover:to-purple-100/50 transition-colors"
       >
-        <span className="text-sm font-medium text-gray-900">
-          Version History ({versions.length} version{versions.length !== 1 ? 's' : ''})
+        <span className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+          <svg className="h-4 w-4 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Version History
+          <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">
+            {versions.length}
+          </span>
         </span>
-        <span className="text-gray-400 text-sm">{open ? '▲' : '▼'}</span>
+        <svg className={`h-4 w-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
       </button>
 
       {open && (
@@ -102,7 +110,7 @@ export default function VersionHistory({ promptId, currentVersion, currentTempla
                   {sortedDiff && (
                     <button
                       onClick={() => setShowDiffModal(true)}
-                      className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
+                      className="rounded-md bg-gradient-to-r from-indigo-600 to-blue-500 px-3 py-1 text-xs font-medium text-white hover:from-indigo-700 hover:to-blue-600 transition-all"
                     >
                       Compare
                     </button>
@@ -119,15 +127,15 @@ export default function VersionHistory({ promptId, currentVersion, currentTempla
               </div>
 
               {/* Current version entry */}
-              <div className="flex items-center gap-3 px-6 py-3 border-b border-gray-200 bg-blue-50/50">
+              <div className="flex items-center gap-3 px-6 py-3 border-b border-gray-200 bg-indigo-50/50">
                 <input
                   type="checkbox"
                   checked={diffSelection.includes(currentVersion)}
                   onChange={() => toggleDiffSelection(currentVersion)}
-                  className="h-3.5 w-3.5 rounded border-gray-300 text-blue-600"
+                  className="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600"
                 />
                 <span className="text-sm font-medium text-gray-900">v{currentVersion}</span>
-                <span className="text-xs text-blue-600 font-medium">Current</span>
+                <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-600">Current</span>
               </div>
 
               {/* Version list */}
@@ -147,11 +155,11 @@ export default function VersionHistory({ promptId, currentVersion, currentTempla
                             toggleDiffSelection(v.version);
                           }}
                           onClick={(e) => e.stopPropagation()}
-                          className="h-3.5 w-3.5 rounded border-gray-300 text-blue-600"
+                          className="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600"
                         />
                         <span className="text-sm font-medium text-gray-900">v{v.version}</span>
                         <span className="text-sm text-gray-500">{v.author}</span>
-                        <span className="text-sm text-gray-400">{formatDate(v.createdAt)}</span>
+                        <span className="text-xs text-gray-400">{formatDate(v.createdAt)}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
@@ -160,7 +168,7 @@ export default function VersionHistory({ promptId, currentVersion, currentTempla
                             handleRollback(v.version);
                           }}
                           disabled={rolling}
-                          className="rounded border border-blue-300 px-3 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-50"
+                          className="rounded-md border border-violet-200 px-3 py-1 text-xs font-medium text-violet-700 hover:bg-violet-50 hover:border-violet-300 disabled:opacity-50 transition-colors"
                         >
                           {rolling ? 'Rolling back...' : 'Rollback'}
                         </button>
