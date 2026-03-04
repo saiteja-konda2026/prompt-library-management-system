@@ -202,7 +202,7 @@ export default function Dashboard() {
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">{prompt.name}</div>
                     {prompt.description && (
-                      <div className="text-sm text-gray-500 truncate max-w-xs">{prompt.description}</div>
+                      <div className="text-sm text-gray-500 truncate max-w-xs" title={prompt.description}>{prompt.description}</div>
                     )}
                   </td>
                   <td className="px-6 py-4">

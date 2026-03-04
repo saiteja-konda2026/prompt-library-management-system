@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import type { Prompt, PromptType, VariableDefinition } from '../types/prompt';
 import { fetchPromptById, createPrompt, updatePrompt, deletePrompt } from '../api/prompts';
 import StatusBadge from '../components/StatusBadge';
@@ -13,10 +13,12 @@ const PROMPT_TYPES: PromptType[] = ['SYSTEM', 'USER', 'STARTER', 'FOLLOW_UP'];
 export default function PromptEditor() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const isEditMode = id !== undefined;
 
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
+  const [cloning, setCloning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [prompt, setPrompt] = useState<Prompt | null>(null);
@@ -29,7 +31,7 @@ export default function PromptEditor() {
   const [tags, setTags] = useState('');
   const [variables, setVariables] = useState<VariableDefinition[]>([]);
   const [testValues, setTestValues] = useState<Record<string, string>>({});
-  const [confirmAction, setConfirmAction] = useState<'archive' | 'saveDraft' | 'save' | null>(null);
+  const [confirmAction, setConfirmAction] = useState<'archive' | 'saveDraft' | 'save' | 'clone' | null>(null);
   const isArchived = prompt?.status === 'ARCHIVED';
 
   const loadPrompt = () => {
@@ -52,6 +54,15 @@ export default function PromptEditor() {
     if (!isEditMode) return;
     loadPrompt();
   }, [id, isEditMode]);
+
+  // Show success message passed via navigation state (e.g. after cloning)
+  useEffect(() => {
+    const state = location.state as { success?: string } | null;
+    if (state?.success) {
+      showSuccess(state.success);
+      window.history.replaceState({}, '');
+    }
+  }, [location.state]);
 
   const showSuccess = (msg: string) => {
     setSuccess(msg);
@@ -102,12 +113,39 @@ export default function PromptEditor() {
     }
   };
 
+  const handleClone = async () => {
+    setCloning(true);
+    setError(null);
+
+    const tagList = tags
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    try {
+      const cloned = await createPrompt({
+        name: name + ' copy',
+        type,
+        templateBody,
+        description: description || undefined,
+        tags: tagList.length > 0 ? tagList : undefined,
+        variables: variables.length > 0 ? variables : undefined,
+      });
+      navigate(`/prompts/${cloned.id}`, { state: { success: `Prompt cloned as "${name} copy"` } });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to clone prompt');
+    } finally {
+      setCloning(false);
+    }
+  };
+
   const handleConfirm = () => {
     const action = confirmAction;
     setConfirmAction(null);
     if (action === 'archive') handleDelete();
     else if (action === 'saveDraft') handleSave();
     else if (action === 'save') handleSave(isEditMode && prompt?.status === 'DRAFT' ? 'ACTIVE' : undefined);
+    else if (action === 'clone') handleClone();
   };
 
   if (loading) {
@@ -153,6 +191,18 @@ export default function PromptEditor() {
               </svg>
               Read Only
             </span>
+          )}
+          {isEditMode && (
+            <button
+              onClick={() => setConfirmAction('clone')}
+              disabled={cloning}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+              </svg>
+              {cloning ? 'Cloning...' : 'Clone'}
+            </button>
           )}
           {isEditMode && prompt?.status === 'ACTIVE' && (
             <button
@@ -348,6 +398,14 @@ export default function PromptEditor() {
         )}
       </div>
 
+      <ConfirmDialog
+        open={confirmAction === 'clone'}
+        title="Clone Prompt"
+        message={`This will create a new prompt named "${name} copy" with the same content. You'll be redirected to the new prompt.`}
+        confirmLabel="Clone"
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirmAction(null)}
+      />
       <ConfirmDialog
         open={confirmAction === 'archive'}
         title="Archive Prompt"
