@@ -10,6 +10,7 @@ interface VersionHistoryProps {
   currentVersion: number;
   currentTemplateBody: string;
   onRollback: () => void;
+  readOnly?: boolean;
 }
 
 function formatDate(dateString: string): string {
@@ -22,7 +23,7 @@ function formatDate(dateString: string): string {
   });
 }
 
-export default function VersionHistory({ promptId, currentVersion, currentTemplateBody, onRollback }: VersionHistoryProps) {
+export default function VersionHistory({ promptId, currentVersion, currentTemplateBody, onRollback, readOnly }: VersionHistoryProps) {
   const [versions, setVersions] = useState<PromptVersion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -152,16 +153,18 @@ export default function VersionHistory({ promptId, currentVersion, currentTempla
                         <span className="text-xs text-gray-400">{formatDate(v.createdAt)}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRollback(v.version);
-                          }}
-                          disabled={rolling}
-                          className="rounded-md border border-violet-200 px-3 py-1 text-xs font-medium text-violet-700 hover:bg-violet-50 hover:border-violet-300 disabled:opacity-50 transition-colors"
-                        >
-                          {rolling ? 'Rolling back...' : 'Rollback'}
-                        </button>
+                        {!readOnly && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRollback(v.version);
+                            }}
+                            disabled={rolling}
+                            className="rounded-md border border-violet-200 px-3 py-1 text-xs font-medium text-violet-700 hover:bg-violet-50 hover:border-violet-300 disabled:opacity-50 transition-colors"
+                          >
+                            {rolling ? 'Rolling back...' : 'Rollback'}
+                          </button>
+                        )}
                         <span className="text-gray-400 text-xs">{expanded === v.version ? '▲' : '▼'}</span>
                       </div>
                     </div>

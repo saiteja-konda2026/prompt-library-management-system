@@ -6,6 +6,7 @@ import StatusBadge from '../components/StatusBadge';
 import VariablesPanel from '../components/VariablesPanel';
 import LivePreview from '../components/LivePreview';
 import VersionHistory from '../components/VersionHistory';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const PROMPT_TYPES: PromptType[] = ['SYSTEM', 'USER', 'STARTER', 'FOLLOW_UP'];
 
@@ -17,6 +18,7 @@ export default function PromptEditor() {
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [prompt, setPrompt] = useState<Prompt | null>(null);
 
   // Form state
@@ -27,6 +29,8 @@ export default function PromptEditor() {
   const [tags, setTags] = useState('');
   const [variables, setVariables] = useState<VariableDefinition[]>([]);
   const [testValues, setTestValues] = useState<Record<string, string>>({});
+  const [confirmAction, setConfirmAction] = useState<'archive' | 'saveDraft' | 'save' | null>(null);
+  const isArchived = prompt?.status === 'ARCHIVED';
 
   const loadPrompt = () => {
     fetchPromptById(Number(id))
@@ -48,6 +52,11 @@ export default function PromptEditor() {
     if (!isEditMode) return;
     loadPrompt();
   }, [id, isEditMode]);
+
+  const showSuccess = (msg: string) => {
+    setSuccess(msg);
+    setTimeout(() => setSuccess(null), 3000);
+  };
 
   const handleSave = async (status?: 'ACTIVE') => {
     setSaving(true);
@@ -72,6 +81,7 @@ export default function PromptEditor() {
       if (isEditMode) {
         const updated = await updatePrompt(Number(id), requestData);
         setPrompt(updated);
+        showSuccess(status === 'ACTIVE' ? 'Prompt published successfully' : 'Prompt saved successfully');
       } else {
         await createPrompt(requestData);
         navigate('/', { replace: true });
@@ -84,14 +94,20 @@ export default function PromptEditor() {
   };
 
   const handleDelete = async () => {
-    if (!isEditMode || !confirm('Are you sure you want to archive this prompt?')) return;
-
     try {
       await deletePrompt(Number(id));
-      navigate('/');
+      navigate('/', { state: { success: 'Prompt archived successfully' } });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete');
     }
+  };
+
+  const handleConfirm = () => {
+    const action = confirmAction;
+    setConfirmAction(null);
+    if (action === 'archive') handleDelete();
+    else if (action === 'saveDraft') handleSave();
+    else if (action === 'save') handleSave(isEditMode && prompt?.status === 'DRAFT' ? 'ACTIVE' : undefined);
   };
 
   if (loading) {
@@ -118,7 +134,7 @@ export default function PromptEditor() {
           </button>
           <div className="h-6 w-px bg-gray-200" />
           <h2 className="text-xl font-semibold text-gray-900">
-            {isEditMode ? 'Edit Prompt' : 'New Prompt'}
+            {isArchived ? 'View Prompt' : isEditMode ? 'Edit Prompt' : 'New Prompt'}
           </h2>
           {prompt && (
             <div className="flex items-center gap-2">
@@ -130,32 +146,58 @@ export default function PromptEditor() {
           )}
         </div>
         <div className="flex items-center gap-2">
+          {isArchived && (
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              Read Only
+            </span>
+          )}
           {isEditMode && prompt?.status === 'ACTIVE' && (
             <button
-              onClick={handleDelete}
-              className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
+              onClick={() => setConfirmAction('archive')}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 hover:border-red-300 transition-colors"
             >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+              </svg>
               Archive
             </button>
           )}
           {isEditMode && prompt?.status === 'DRAFT' && (
             <button
-              onClick={() => handleSave()}
+              onClick={() => setConfirmAction('saveDraft')}
               disabled={saving || !name || !templateBody}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 hover:border-amber-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
               {saving ? 'Saving...' : 'Save as Draft'}
             </button>
           )}
-          <button
-            onClick={() => handleSave(isEditMode && prompt?.status === 'DRAFT' ? 'ACTIVE' : undefined)}
-            disabled={saving || !name || !templateBody}
-            className="rounded-lg bg-gradient-to-r from-indigo-600 to-blue-500 px-5 py-2 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            {saving ? 'Saving...' : 'Save'}
-          </button>
+          {!isArchived && (
+            <button
+              onClick={() => setConfirmAction('save')}
+              disabled={saving || !name || !templateBody}
+              className="rounded-lg bg-gradient-to-r from-indigo-600 to-blue-500 px-5 py-2 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Success */}
+      {success && (
+        <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-700">
+          <svg className="h-5 w-5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {success}
+        </div>
+      )}
 
       {/* Error */}
       {error && (
@@ -197,13 +239,14 @@ export default function PromptEditor() {
           {/* Left: Name + Description */}
           <div className="flex-1 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter prompt name"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+                readOnly={isArchived}
+                className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition-colors ${isArchived ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500'}`}
               />
             </div>
             <div>
@@ -213,7 +256,8 @@ export default function PromptEditor() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Short description of what this prompt does"
                 rows={2}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+                readOnly={isArchived}
+                className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition-colors ${isArchived ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500'}`}
               />
             </div>
           </div>
@@ -228,7 +272,8 @@ export default function PromptEditor() {
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as PromptType)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+                disabled={isArchived}
+                className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition-colors ${isArchived ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500'}`}
               >
                 {PROMPT_TYPES.map((t) => (
                   <option key={t} value={t}>{t}</option>
@@ -242,7 +287,8 @@ export default function PromptEditor() {
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
                 placeholder="Comma-separated tags"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+                readOnly={isArchived}
+                className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition-colors ${isArchived ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500'}`}
               />
             </div>
           </div>
@@ -257,14 +303,15 @@ export default function PromptEditor() {
             <svg className="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
             </svg>
-            Template Body
+            Template Body <span className="text-red-500">*</span>
           </label>
           <textarea
             value={templateBody}
             onChange={(e) => setTemplateBody(e.target.value)}
             placeholder="Enter your prompt template. Use {{variable_name}} for placeholders."
             rows={14}
-            className="w-full flex-1 rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm bg-slate-50 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+            readOnly={isArchived}
+            className={`w-full flex-1 rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm transition-colors ${isArchived ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'bg-slate-50 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500'}`}
           />
         </div>
 
@@ -284,6 +331,7 @@ export default function PromptEditor() {
             onChange={setVariables}
             testValues={testValues}
             onTestValuesChange={setTestValues}
+            readOnly={isArchived}
           />
         </div>
 
@@ -294,10 +342,40 @@ export default function PromptEditor() {
               currentVersion={prompt.version}
               currentTemplateBody={templateBody}
               onRollback={loadPrompt}
+              readOnly={isArchived}
             />
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmAction === 'archive'}
+        title="Archive Prompt"
+        message="Are you sure you want to archive this prompt? It will no longer be available for use but can still be viewed."
+        confirmLabel="Archive"
+        confirmClassName="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirmAction(null)}
+      />
+      <ConfirmDialog
+        open={confirmAction === 'saveDraft'}
+        title="Save as Draft"
+        message="This will save the current changes while keeping the prompt in draft status. You can continue editing it later."
+        confirmLabel="Save as Draft"
+        confirmClassName="rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600 transition-colors"
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirmAction(null)}
+      />
+      <ConfirmDialog
+        open={confirmAction === 'save'}
+        title={isEditMode && prompt?.status === 'DRAFT' ? 'Publish Prompt' : 'Save Changes'}
+        message={isEditMode && prompt?.status === 'DRAFT'
+          ? 'This will mark the prompt as active and make it available for use. This action cannot be undone.'
+          : 'Are you sure you want to save the changes? A new version will be created.'}
+        confirmLabel="Save"
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   );
 }
