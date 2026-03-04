@@ -82,20 +82,23 @@ export default function Dashboard() {
   return (
     <div className="space-y-4">
       {/* Search, Filters, and New Prompt */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="flex-1">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center rounded-xl bg-white border border-gray-200 shadow-sm p-4">
+        <div className="flex-1 relative">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
           <input
             type="text"
             placeholder="Search prompts..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 pl-10 pr-3 py-2 text-sm placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
           />
         </div>
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value as PromptType | '')}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
         >
           <option value="">All Types</option>
           {PROMPT_TYPES.map((t) => (
@@ -105,7 +108,7 @@ export default function Dashboard() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as PromptStatus | '')}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
         >
           <option value="">All Statuses</option>
           {PROMPT_STATUSES.map((s) => (
@@ -114,14 +117,14 @@ export default function Dashboard() {
         </select>
         <input
           type="text"
-          placeholder="Filter by tags (comma-separated)"
+          placeholder="Filter by tags"
           value={tagFilter}
           onChange={(e) => setTagFilter(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
         />
         <button
           onClick={() => navigate('/prompts/new')}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 whitespace-nowrap"
+          className="rounded-lg bg-gradient-to-r from-indigo-600 to-blue-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-blue-600 whitespace-nowrap transition-all"
         >
           + New Prompt
         </button>
@@ -129,34 +132,40 @@ export default function Dashboard() {
 
       {/* Error State */}
       {error && (
-        <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+        <div className="flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+          <svg className="h-5 w-5 shrink-0 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           {error}
         </div>
       )}
 
       {/* Table */}
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gradient-to-r from-gray-50 to-slate-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Tags</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Version</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Last Updated</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Type</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Tags</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Version</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Last Updated</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-100">
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
-                  Loading...
+                <td colSpan={6} className="px-6 py-12 text-center">
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600" />
+                    Loading...
+                  </div>
                 </td>
               </tr>
             ) : data?.content.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
+                <td colSpan={6} className="px-6 py-12 text-center text-sm text-gray-500">
                   No prompts found.
                 </td>
               </tr>
@@ -165,7 +174,7 @@ export default function Dashboard() {
                 <tr
                   key={prompt.id}
                   onClick={() => navigate(`/prompts/${prompt.id}`)}
-                  className="cursor-pointer hover:bg-gray-50"
+                  className="cursor-pointer hover:bg-indigo-50/30 transition-colors"
                 >
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">{prompt.name}</div>
@@ -181,7 +190,7 @@ export default function Dashboard() {
                       {prompt.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
+                          className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-600 border border-indigo-100"
                         >
                           {tag}
                         </span>
@@ -191,8 +200,10 @@ export default function Dashboard() {
                   <td className="px-6 py-4">
                     <StatusBadge status={prompt.status} />
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    v{prompt.version}
+                  <td className="px-6 py-4">
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                      v{prompt.version}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                     {formatDate(prompt.updatedAt)}
