@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { PromptPage, PromptStatus, PromptType } from '../types/prompt';
 import { fetchPrompts } from '../api/prompts';
 import StatusBadge from '../components/StatusBadge';
@@ -22,9 +22,22 @@ function formatDate(dateString: string): string {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [data, setData] = useState<PromptPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  // Show success message passed via navigation state (e.g. after archiving)
+  useEffect(() => {
+    const state = location.state as { success?: string } | null;
+    if (state?.success) {
+      setSuccess(state.success);
+      setTimeout(() => setSuccess(null), 3000);
+      // Clear the state so it doesn't reappear on refresh
+      window.history.replaceState({}, '');
+    }
+  }, [location.state]);
 
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<PromptType | ''>('');
@@ -130,6 +143,16 @@ export default function Dashboard() {
         </button>
       </div>
 
+      {/* Success */}
+      {success && (
+        <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-700">
+          <svg className="h-5 w-5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {success}
+        </div>
+      )}
+
       {/* Error State */}
       {error && (
         <div className="flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
@@ -143,14 +166,14 @@ export default function Dashboard() {
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gradient-to-r from-gray-50 to-slate-50">
+          <thead className="bg-gradient-to-r from-indigo-50 to-blue-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Type</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Tags</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Version</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Last Updated</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-600">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-600">Type</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-600">Tags</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-600">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-600">Version</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-600">Last Updated</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">

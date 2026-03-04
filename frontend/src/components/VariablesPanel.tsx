@@ -7,6 +7,7 @@ interface VariablesPanelProps {
   onChange: (variables: VariableDefinition[]) => void;
   testValues: Record<string, string>;
   onTestValuesChange: (values: Record<string, string>) => void;
+  readOnly?: boolean;
 }
 
 function extractVariableNames(template: string): string[] {
@@ -19,15 +20,13 @@ function extractVariableNames(template: string): string[] {
   return Array.from(names);
 }
 
-export default function VariablesPanel({ templateBody, variables, onChange, testValues, onTestValuesChange }: VariablesPanelProps) {
+export default function VariablesPanel({ templateBody, variables, onChange, testValues, onTestValuesChange, readOnly }: VariablesPanelProps) {
   const detectedNames = useMemo(() => extractVariableNames(templateBody), [templateBody]);
 
   const mergedVariables = useMemo(() => {
     const existingByName = new Map(variables.map((v) => [v.name, v]));
     return detectedNames.map((name) => existingByName.get(name) ?? { name, required: false });
   }, [detectedNames, variables]);
-
-  if (detectedNames.length === 0) return null;
 
   const updateVariable = (index: number, field: keyof VariableDefinition, value: string | boolean) => {
     const updated = mergedVariables.map((v, i) =>
@@ -45,10 +44,17 @@ export default function VariablesPanel({ templateBody, variables, onChange, test
         <span className="text-sm font-semibold text-gray-900">
           Detected Variables
         </span>
-        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-          {detectedNames.length}
-        </span>
+        {detectedNames.length > 0 && (
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+            {detectedNames.length}
+          </span>
+        )}
       </div>
+      {detectedNames.length === 0 ? (
+        <div className="flex items-center justify-center py-10 px-5 text-sm text-gray-400">
+          Variables added to the template body using <code className="mx-1 rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono text-gray-500">{"{{variable}}"}</code> syntax will appear here
+        </div>
+      ) : (
       <div className="overflow-x-auto overflow-y-auto max-h-72">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -79,7 +85,8 @@ export default function VariablesPanel({ templateBody, variables, onChange, test
                     value={variable.description ?? ''}
                     onChange={(e) => updateVariable(index, 'description', e.target.value)}
                     placeholder="Describe this variable"
-                    className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+                    readOnly={readOnly}
+                    className={`w-full rounded-md border border-gray-300 px-2 py-1 text-sm transition-colors ${readOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500'}`}
                   />
                 </td>
                 <td className="px-4 py-2.5">
@@ -88,7 +95,8 @@ export default function VariablesPanel({ templateBody, variables, onChange, test
                     value={variable.defaultValue ?? ''}
                     onChange={(e) => updateVariable(index, 'defaultValue', e.target.value)}
                     placeholder="Default"
-                    className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+                    readOnly={readOnly}
+                    className={`w-full rounded-md border border-gray-300 px-2 py-1 text-sm transition-colors ${readOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500'}`}
                   />
                 </td>
                 <td className="px-4 py-2.5">
@@ -97,7 +105,8 @@ export default function VariablesPanel({ templateBody, variables, onChange, test
                     value={testValues[variable.name] ?? ''}
                     onChange={(e) => onTestValuesChange({ ...testValues, [variable.name]: e.target.value })}
                     placeholder={variable.defaultValue || 'Test value'}
-                    className="w-full rounded-md border border-blue-200 bg-blue-50/30 px-2 py-1 text-sm focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+                    readOnly={readOnly}
+                    className={`w-full rounded-md px-2 py-1 text-sm transition-colors ${readOnly ? 'border border-gray-300 bg-gray-50 text-gray-500 cursor-not-allowed' : 'border border-blue-200 bg-blue-50/30 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500'}`}
                   />
                 </td>
                 <td className="px-4 py-2.5 text-center">
@@ -105,7 +114,8 @@ export default function VariablesPanel({ templateBody, variables, onChange, test
                     type="checkbox"
                     checked={variable.required}
                     onChange={(e) => updateVariable(index, 'required', e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    disabled={readOnly}
+                    className={`h-4 w-4 rounded border-gray-300 ${readOnly ? 'text-gray-400 cursor-not-allowed' : 'text-indigo-600 focus:ring-indigo-500'}`}
                   />
                 </td>
               </tr>
@@ -113,6 +123,7 @@ export default function VariablesPanel({ templateBody, variables, onChange, test
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }
