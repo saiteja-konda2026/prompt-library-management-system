@@ -86,6 +86,7 @@ export default function PromptEditor() {
       status: status || undefined,
       tags: tagList.length > 0 ? tagList : undefined,
       variables: variables.length > 0 ? variables : undefined,
+      author: 'admin',
     };
 
     try {
@@ -130,6 +131,7 @@ export default function PromptEditor() {
         description: description || undefined,
         tags: tagList.length > 0 ? tagList : undefined,
         variables: variables.length > 0 ? variables : undefined,
+        author: 'admin',
       });
       navigate(`/prompts/${cloned.id}`, { state: { success: `Prompt cloned as "${name} copy"` } });
     } catch (err) {

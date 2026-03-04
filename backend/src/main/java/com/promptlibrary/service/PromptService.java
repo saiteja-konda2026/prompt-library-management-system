@@ -86,6 +86,10 @@ public class PromptService {
         // Apply updates from request
         promptMapper.updatePromptFromRequest(prompt, request);
 
+        if (request.getAuthor() != null) {
+            prompt.setUpdatedBy(request.getAuthor());
+        }
+
         Prompt saved = promptRepository.save(prompt);
         return promptMapper.toPromptResponse(saved);
     }

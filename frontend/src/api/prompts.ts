@@ -17,6 +17,7 @@ export interface PromptUpsertRequest {
   status?: PromptStatus;
   tags?: string[];
   variables?: VariableDefinition[];
+  author?: string;
 }
 
 export async function fetchPrompts(params: FetchPromptsParams = {}): Promise<PromptPage> {
