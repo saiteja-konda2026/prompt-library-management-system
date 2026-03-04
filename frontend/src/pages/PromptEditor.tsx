@@ -181,11 +181,11 @@ export default function PromptEditor() {
         </div>
       )}
 
-      {/* Form */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Left column - main form */}
-        <div className="space-y-5 lg:col-span-2">
-          <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-5 space-y-4">
+      {/* Name + Description + Settings */}
+      <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left: Name + Description */}
+          <div className="flex-1 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
               <input
@@ -196,7 +196,6 @@ export default function PromptEditor() {
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
               <textarea
@@ -209,47 +208,11 @@ export default function PromptEditor() {
             </div>
           </div>
 
-          {/* Template Body + Live Preview side by side */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-            <div className="lg:col-span-3 rounded-xl bg-white border border-gray-200 shadow-sm p-5 flex flex-col">
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <svg className="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                </svg>
-                Template Body
-              </label>
-              <textarea
-                value={templateBody}
-                onChange={(e) => setTemplateBody(e.target.value)}
-                placeholder="Enter your prompt template. Use {{variable_name}} for placeholders."
-                rows={12}
-                className="w-full flex-1 rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm bg-slate-50 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
-              />
-            </div>
+          {/* Divider */}
+          <div className="hidden lg:block w-px bg-gray-200" />
 
-            {/* Live Preview */}
-            <div className="lg:col-span-2">
-              <LivePreview
-                templateBody={templateBody}
-                testValues={testValues}
-              />
-            </div>
-          </div>
-
-          {/* Auto-detected Variables */}
-          <VariablesPanel
-            templateBody={templateBody}
-            variables={variables}
-            onChange={setVariables}
-            testValues={testValues}
-            onTestValuesChange={setTestValues}
-          />
-        </div>
-
-        {/* Right column - metadata */}
-        <div className="space-y-5">
-          <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-5 space-y-4">
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Settings</h3>
+          {/* Right: Type + Tags */}
+          <div className="lg:w-64 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
               <select
@@ -262,7 +225,6 @@ export default function PromptEditor() {
                 ))}
               </select>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
               <input
@@ -274,17 +236,57 @@ export default function PromptEditor() {
               />
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Version History (edit mode only) */}
-          {prompt && (
+      {/* Template Body + Live Preview — 50/50 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Template Body */}
+        <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-5 flex flex-col">
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+            <svg className="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+            Template Body
+          </label>
+          <textarea
+            value={templateBody}
+            onChange={(e) => setTemplateBody(e.target.value)}
+            placeholder="Enter your prompt template. Use {{variable_name}} for placeholders."
+            rows={14}
+            className="w-full flex-1 rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm bg-slate-50 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+          />
+        </div>
+
+        {/* Live Preview */}
+        <LivePreview
+          templateBody={templateBody}
+          testValues={testValues}
+        />
+      </div>
+
+      {/* Variables Panel + Version History — side by side */}
+      <div className={`grid grid-cols-1 gap-5 ${prompt ? 'lg:grid-cols-10' : ''}`}>
+        <div className={prompt ? 'lg:col-span-7' : ''}>
+          <VariablesPanel
+            templateBody={templateBody}
+            variables={variables}
+            onChange={setVariables}
+            testValues={testValues}
+            onTestValuesChange={setTestValues}
+          />
+        </div>
+
+        {prompt && (
+          <div className="lg:col-span-3">
             <VersionHistory
               promptId={Number(id)}
               currentVersion={prompt.version}
               currentTemplateBody={templateBody}
               onRollback={loadPrompt}
             />
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
