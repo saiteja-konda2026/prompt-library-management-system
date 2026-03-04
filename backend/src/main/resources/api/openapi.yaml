@@ -452,8 +452,24 @@ components:
       properties:
         version:
           type: integer
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          $ref: '#/components/schemas/PromptType'
         templateBody:
           type: string
+        status:
+          $ref: '#/components/schemas/PromptStatus'
+        tags:
+          type: array
+          items:
+            type: string
+        variables:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariableDefinition'
         author:
           type: string
         createdAt:
