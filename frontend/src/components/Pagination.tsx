@@ -2,14 +2,21 @@ interface PaginationProps {
   page: number;
   totalPages: number;
   totalElements: number;
+  pageSize: number;
   onPageChange: (page: number) => void;
 }
 
-export default function Pagination({ page, totalPages, totalElements, onPageChange }: PaginationProps) {
+export default function Pagination({ page, totalPages, totalElements, pageSize, onPageChange }: PaginationProps) {
+  const from = totalElements === 0 ? 0 : page * pageSize + 1;
+  const to = Math.min((page + 1) * pageSize, totalElements);
+
   return (
     <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
       <div className="text-sm text-gray-700">
-        {totalElements} total prompt{totalElements !== 1 ? 's' : ''}
+        {from === to
+          ? <>Showing <span className="font-medium">{from}</span> of <span className="font-medium">{totalElements}</span> prompts</>
+          : <>Showing <span className="font-medium">{from}</span> to <span className="font-medium">{to}</span> of <span className="font-medium">{totalElements}</span> prompts</>
+        }
       </div>
       <div className="flex items-center gap-2">
         <button

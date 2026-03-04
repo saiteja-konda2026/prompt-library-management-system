@@ -265,6 +265,7 @@ export default function Dashboard() {
             page={data.number}
             totalPages={data.totalPages}
             totalElements={data.totalElements}
+            pageSize={PAGE_SIZE}
             onPageChange={setPage}
           />
         )}
