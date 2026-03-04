@@ -74,7 +74,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PromptCreateRequest'
+              $ref: '#/components/schemas/PromptUpsertRequest'
       responses:
         '201':
           description: Created
@@ -373,7 +373,7 @@ components:
         required:
           type: boolean
 
-    PromptCreateRequest:
+    PromptUpsertRequest:
       type: object
       required: [name, type, templateBody]
       properties:
@@ -386,6 +386,8 @@ components:
           $ref: '#/components/schemas/PromptType'
         templateBody:
           type: string
+        status:
+          $ref: '#/components/schemas/PromptStatus'
         tags:
           type: array
           items:
@@ -396,7 +398,7 @@ components:
             $ref: '#/components/schemas/VariableDefinition'
 
     PromptUpdateRequest:
-      $ref: '#/components/schemas/PromptCreateRequest'
+      $ref: '#/components/schemas/PromptUpsertRequest'
 
     PromptResponse:
       type: object

@@ -339,4 +339,88 @@ class PromptControllerIntegrationTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("NOT_FOUND"));
     }
+
+    // --- Status Transition Tests ---
+
+    @Test
+    void updateDraftPrompt_saveDraft_noVersionIncrement() throws Exception {
+        // Prompt id=4 (Email Draft Helper) is DRAFT — update without status field stays DRAFT, no version bump
+        String requestBody = """
+                {
+                    "name": "Email Draft Helper Updated",
+                    "type": "USER",
+                    "templateBody": "Updated draft body"
+                }
+                """;
+
+        mockMvc.perform(put("/api/prompts/4")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(4))
+                .andExpect(jsonPath("$.name").value("Email Draft Helper Updated"))
+                .andExpect(jsonPath("$.status").value("DRAFT"))
+                .andExpect(jsonPath("$.version").value(1));
+    }
+
+    @Test
+    void updateDraftPrompt_activate_setsActive() throws Exception {
+        // Prompt id=4 (Email Draft Helper) is DRAFT — setting status to ACTIVE should work
+        String requestBody = """
+                {
+                    "name": "Email Draft Helper",
+                    "type": "USER",
+                    "templateBody": "Activated draft body",
+                    "status": "ACTIVE"
+                }
+                """;
+
+        mockMvc.perform(put("/api/prompts/4")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(4))
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.version").value(1));
+    }
+
+    @Test
+    void updateActivePrompt_toDraft_returns400() throws Exception {
+        // Prompt id=1 (SQL Query Assistant) is ACTIVE — setting status to DRAFT is illegal
+        String requestBody = """
+                {
+                    "name": "SQL Query Assistant",
+                    "type": "SYSTEM",
+                    "templateBody": "Some body",
+                    "status": "DRAFT"
+                }
+                """;
+
+        mockMvc.perform(put("/api/prompts/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", containsString("Invalid status transition")))
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+    }
+
+    @Test
+    void updateArchivedPrompt_toActive_returns400() throws Exception {
+        // Prompt id=6 is ARCHIVED — setting status to ACTIVE is illegal
+        String requestBody = """
+                {
+                    "name": "Legacy Chat Opener",
+                    "type": "STARTER",
+                    "templateBody": "Some body",
+                    "status": "ACTIVE"
+                }
+                """;
+
+        mockMvc.perform(put("/api/prompts/6")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", containsString("Invalid status transition")))
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+    }
 }

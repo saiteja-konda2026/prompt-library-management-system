@@ -9,11 +9,12 @@ export interface FetchPromptsParams {
   size?: number;
 }
 
-export interface PromptCreateRequest {
+export interface PromptUpsertRequest {
   name: string;
   type: PromptType;
   templateBody: string;
   description?: string;
+  status?: PromptStatus;
   tags?: string[];
   variables?: VariableDefinition[];
 }
@@ -46,7 +47,7 @@ export async function fetchPromptById(id: number): Promise<Prompt> {
   return response.json();
 }
 
-export async function createPrompt(data: PromptCreateRequest): Promise<Prompt> {
+export async function createPrompt(data: PromptUpsertRequest): Promise<Prompt> {
   const response = await fetch('/api/prompts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -59,7 +60,7 @@ export async function createPrompt(data: PromptCreateRequest): Promise<Prompt> {
   return response.json();
 }
 
-export async function updatePrompt(id: number, data: PromptCreateRequest): Promise<Prompt> {
+export async function updatePrompt(id: number, data: PromptUpsertRequest): Promise<Prompt> {
   const response = await fetch(`/api/prompts/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },

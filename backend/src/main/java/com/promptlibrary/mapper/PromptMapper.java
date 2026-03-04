@@ -11,7 +11,7 @@ import com.promptlibrary.model.PromptVariable;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
-import com.promptlibrary.dto.PromptCreateRequest;
+import com.promptlibrary.dto.PromptUpsertRequest;
 import com.promptlibrary.model.PromptVersion;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -79,7 +79,7 @@ public class PromptMapper {
         return dto;
     }
 
-    public Prompt toPromptEntity(PromptCreateRequest request) {
+    public Prompt toPromptEntity(PromptUpsertRequest request) {
         Prompt prompt = new Prompt();
         prompt.setName(request.getName());
         prompt.setDescription(request.getDescription());
@@ -189,11 +189,15 @@ public class PromptMapper {
         }
     }
 
-    public void updatePromptFromRequest(Prompt prompt, PromptCreateRequest request) {
+    public void updatePromptFromRequest(Prompt prompt, PromptUpsertRequest request) {
         prompt.setName(request.getName());
         prompt.setDescription(request.getDescription());
         prompt.setType(com.promptlibrary.model.PromptType.valueOf(request.getType().getValue()));
         prompt.setTemplateBody(request.getTemplateBody());
+
+        if (request.getStatus() != null) {
+            prompt.setStatus(com.promptlibrary.model.PromptStatus.valueOf(request.getStatus().getValue()));
+        }
 
         prompt.getTags().clear();
         if (request.getTags() != null) {
